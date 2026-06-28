@@ -173,7 +173,132 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 4. Helpers: a safe file name from the contact's name, and a generic
+  // 4. PDF business card. A browser port of the original Python canvas layout,
+  //    drawn with jsPDF (global `window.jspdf`). The QR is drawn as vector
+  //    squares (not a pasted image) so it stays crisp at any print size.
+  // ---------------------------------------------------------------------------
+
+  // Card dimensions in points (72 pt = 1 inch; 1 mm = 2.83465 pt).
+  var CARD_SIZES = {
+    us: { w: 252, h: 144 },         // 3.5 x 2 in
+    eu: { w: 240.945, h: 155.906 }, // 85 x 55 mm
+  };
+
+  function hexToRgb(hex) {
+    hex = String(hex || "").replace("#", "");
+    if (hex.length === 3) {
+      hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+    }
+    var n = parseInt(hex, 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+
+  function buildPdf(data, qr) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error("jsPDF library not loaded (lib/jspdf.umd.min.js).");
+    }
+    var JsPDF = window.jspdf.jsPDF;
+    var size = CARD_SIZES[data.size] || CARD_SIZES.us;
+    var W = size.w, H = size.h;
+
+    var doc = new JsPDF({
+      unit: "pt",
+      format: [W, H],
+      orientation: W >= H ? "landscape" : "portrait",
+    });
+
+    var ink = hexToRgb("#1c2230");
+    var grey = hexToRgb("#73787f");
+    var acc = hexToRgb(data.accent);
+
+    var M = 14, leftX = 18;
+
+    // --- QR: vector squares, right side, vertically centered ---
+    var qrSize = H * 0.62;
+    var qx = W - M - qrSize;
+    var qy = (H - qrSize) / 2 - 4;
+    var count = qr.getModuleCount();
+    var quiet = 2; // white quiet-zone modules inside the QR box, for scannability
+    var cell = qrSize / (count + quiet * 2);
+    doc.setFillColor(ink.r, ink.g, ink.b);
+    for (var r = 0; r < count; r++) {
+      for (var c = 0; c < count; c++) {
+        if (qr.isDark(r, c)) {
+          doc.rect(qx + (c + quiet) * cell, qy + (r + quiet) * cell, cell, cell, "F");
+        }
+      }
+    }
+    doc.setTextColor(grey.r, grey.g, grey.b);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.4);
+    doc.text("Scan to save my contact", qx + qrSize / 2, qy + qrSize + 9, { align: "center" });
+
+    // --- Left accent bar ---
+    doc.setFillColor(acc.r, acc.g, acc.b);
+    doc.rect(0, 0, 4, H, "F");
+
+    // --- Name (auto-shrink to fit the text column) ---
+    var textMaxX = qx - 10;
+    var nameSize = 13;
+    doc.setFont("helvetica", "bold");
+    while (nameSize > 9 &&
+           doc.getStringUnitWidth(data.displayName) * nameSize > (textMaxX - leftX)) {
+      nameSize -= 0.5;
+    }
+    doc.setFontSize(nameSize);
+    doc.setTextColor(ink.r, ink.g, ink.b);
+    var y = M + nameSize;
+    doc.text(data.displayName, leftX, y);
+
+    // --- Title ---
+    if (data.title) {
+      y += 13;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.6);
+      doc.setTextColor(acc.r, acc.g, acc.b);
+      doc.text(data.title, leftX, y);
+    }
+
+    // --- Divider ---
+    y += 7;
+    doc.setDrawColor(acc.r, acc.g, acc.b);
+    doc.setLineWidth(0.8);
+    doc.line(leftX, y, leftX + Math.min(96, textMaxX - leftX), y);
+
+    // --- Contact lines: phones (label + number), email, links ---
+    y += 13;
+    var step = 11.5;
+    data.phones.forEach(function (phone) {
+      if (phone.label) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.6);
+        doc.setTextColor(acc.r, acc.g, acc.b);
+        doc.text(phone.label, leftX, y);
+        var lw = doc.getStringUnitWidth(phone.label + "  ") * 6.6;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.0);
+        doc.setTextColor(ink.r, ink.g, ink.b);
+        doc.text(phone.number, leftX + lw, y);
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.0);
+        doc.setTextColor(ink.r, ink.g, ink.b);
+        doc.text(phone.number, leftX, y);
+      }
+      y += step;
+    });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.0);
+    doc.setTextColor(ink.r, ink.g, ink.b);
+    if (data.email) { doc.text(data.email, leftX, y); y += step; }
+    data.links.forEach(function (link) { doc.text(link, leftX, y); y += step; });
+
+    return doc;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Helpers: a safe file name from the contact's name, and a generic
   //    "download this text/blob as a file" routine reused by every output.
   // ---------------------------------------------------------------------------
   function safeBaseName(displayName) {
@@ -201,9 +326,9 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 5. Wire up the form. "Generate card" now produces the .vcf and a QR .png,
-  //    and updates the preview. The PDF and the PDF-only/all-files toggle plug
-  //    into this next.
+  // 6. Wire up the form. "Generate card" produces the PDF card, the QR .png,
+  //    and the .vcf, and updates the preview. (The PDF-only/all-files toggle is
+  //    wired next; for now all three files are produced.)
   // ---------------------------------------------------------------------------
   function handleSubmit(event) {
     event.preventDefault();
@@ -216,28 +341,35 @@
 
     var vcard = buildVCard(data);
     var base = safeBaseName(data.displayName);
+    var qr = buildQrModel(vcard);
 
-    downloadText(base + ".vcf", vcard, "text/vcard;charset=utf-8");
+    // PDF business card (QR drawn as vector squares).
+    buildPdf(data, qr).save(base + "_card.pdf");
 
-    var canvas = drawQrToCanvas(buildQrModel(vcard));
+    // QR .png + live preview update.
+    var canvas = drawQrToCanvas(qr);
     renderPreviewQr(canvas);
     canvas.toBlob(function (blob) {
       downloadBlob(base + "_QR.png", blob);
     }, "image/png");
+
+    // vCard contact file.
+    downloadText(base + ".vcf", vcard, "text/vcard;charset=utf-8");
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     var form = document.getElementById("card-form");
     if (form) form.addEventListener("submit", handleSubmit);
-    console.log("Contact Card Builder: vCard + QR ready.");
+    console.log("Contact Card Builder: vCard + QR + PDF ready.");
   });
 
-  // Expose for later steps (PDF) and quick console testing.
+  // Expose for testing and future steps.
   window.ContactCard = {
     readForm: readForm,
     buildVCard: buildVCard,
     buildQrModel: buildQrModel,
     drawQrToCanvas: drawQrToCanvas,
+    buildPdf: buildPdf,
     safeBaseName: safeBaseName,
     downloadText: downloadText,
     downloadBlob: downloadBlob,

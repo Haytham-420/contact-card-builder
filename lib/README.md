@@ -13,7 +13,7 @@ step — the browser loads these `.js` files directly via `<script>` tags.
 | File                  | Library / version       | Used for                                       | Source |
 |-----------------------|-------------------------|------------------------------------------------|--------|
 | `qrcode.js`           | qrcode-generator 1.4.4  | Building the QR matrix from the vCard text      | https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js |
-| `jspdf.umd.min.js`    | jsPDF (pending)         | Generating the PDF; QR drawn as vector squares  | added in step 5 (PDF) |
+| `jspdf.umd.min.js`    | jsPDF 2.5.2             | Generating the PDF; QR drawn as vector squares  | https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js |
 
 ## Rules for this folder
 - **Pin a specific version** when vendoring; record the version and source URL here.
