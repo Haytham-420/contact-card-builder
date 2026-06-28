@@ -54,7 +54,10 @@ LICENSE        # MIT
 
 ## Build roadmap (one commit per step)
 
-1. **Scaffold** repo + docs + license + git. ✅ (this commit)
+> **Status: all steps below are shipped.** The app is feature-complete and live on
+> GitHub Pages. This roadmap is kept as a record of how it was built.
+
+1. **Scaffold** repo + docs + license + git. ✅
 2. **Form UI + base CSS** — inputs for name, title, phones (label + number), email,
    links; the "PDF only / all files" toggle; the card-size dropdown. No logic yet.
 3. **vCard data layer** — read the form → build the vCard string (port of the Python
