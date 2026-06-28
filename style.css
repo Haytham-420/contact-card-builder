@@ -1,33 +1,438 @@
 /* =============================================================================
    Contact Card Builder — styles
    Plain CSS, no framework, no build step. 2-space indentation.
-   Real form/layout styling arrives in step 2.
+
+   Structure:
+     1. Design tokens (custom properties)
+     2. Base / reset
+     3. Layout (header + two-column)
+     4. Panels
+     5. Form controls
+     6. Repeatable rows (phones / links)
+     7. Segmented toggle + buttons
+     8. Card preview
+     9. Responsive
    ============================================================================= */
 
+/* ----------------------------- 1. Tokens --------------------------------- */
 :root {
-  /* default accent (purple), matching the original card; will become editable later */
-  --accent: #732da0;
-  --ink: #1c2230;
-  --grey: #73787f;
+  --accent: #732da0;        /* purple, matching the original card             */
+  --accent-strong: #5d2483; /* darker accent for hover/active                 */
+  --accent-tint: #f3ecf8;   /* very light accent wash for backgrounds         */
+
+  --ink: #1c2230;           /* primary text                                   */
+  --muted: #6b7280;         /* secondary text                                 */
+  --line: #e4e7ec;          /* borders / dividers                             */
+
+  --bg: #f5f6f8;            /* page background                                */
+  --surface: #ffffff;       /* panels / cards                                 */
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.06);
+  --shadow-card: 0 6px 24px rgba(16, 24, 40, 0.12);
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* ------------------------------ 2. Base ---------------------------------- */
 * {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--ink);
-  line-height: 1.5;
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
-.app {
-  max-width: 720px;
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.55;
+}
+
+h1, h2, p, ul, fieldset, legend {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+/* --------------------------- 3. Layout ----------------------------------- */
+.app-header {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff;
+}
+
+.app-header__inner {
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2.25rem 1.25rem 2.5rem;
+}
+
+.app-title {
+  font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .tagline {
-  color: var(--grey);
+  margin-top: 0.4rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 46ch;
+}
+
+.layout {
+  max-width: 1040px;
+  margin: -1.25rem auto 3rem;
+  padding: 0 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* --------------------------- 4. Panels ----------------------------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.panel__heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+}
+
+.preview-panel {
+  position: sticky;
+  top: 1.25rem;
+}
+
+/* ------------------------- 5. Form controls ------------------------------ */
+.field-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.4rem;
+}
+
+.field-group > legend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.field {
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field__label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.field--inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.field--inline .field__label {
+  margin-bottom: 0;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+select {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input::placeholder {
+  color: #9aa1ac;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+
+input[type="color"] {
+  width: 44px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* --------------------- 6. Repeatable rows (phones/links) ----------------- */
+.repeat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.repeat-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.repeat-row .phone-label {
+  flex: 0 0 38%;
+}
+
+.repeat-row .phone-number,
+.repeat-row .link-url {
+  flex: 1 1 auto;
+}
+
+.row-remove {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.row-remove:hover {
+  color: #b42318;
+  border-color: #f0c2bd;
+  background: #fef3f2;
+}
+
+.row-add {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+
+.row-add:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+/* --------------------- 7. Segmented toggle + buttons --------------------- */
+.segmented {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.25rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.9rem;
+}
+
+.segmented__option {
+  flex: 1 1 0;
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option span {
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.45rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.segmented__option input:checked + span {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.segmented__option input:focus-visible + span {
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+.btn-primary {
+  width: 100%;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  margin-top: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* -------------------------- 8. Card preview ------------------------------ */
+.card {
+  position: relative;
+  display: flex;
+  aspect-ratio: 3.5 / 2;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.card__accent {
+  flex: 0 0 6px;
+  background: var(--accent);
+}
+
+.card__body {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 4%;
+  padding: 6% 6% 6% 5%;
+}
+
+.card__info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.card__name {
+  font-size: clamp(0.95rem, 0.6rem + 1.4vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.card__role {
+  color: var(--accent);
+  font-size: clamp(0.7rem, 0.5rem + 0.7vw, 0.9rem);
+  margin-top: 0.1rem;
+}
+
+.card__divider {
+  border: none;
+  border-top: 2px solid var(--accent);
+  width: 42%;
+  margin: 0.5rem 0 0.6rem;
+}
+
+.card__lines {
+  font-size: clamp(0.6rem, 0.45rem + 0.55vw, 0.78rem);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  word-break: break-word;
+}
+
+.card__label {
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 0.25rem;
+}
+
+.card__qr {
+  flex: 0 0 32%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.qr-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  background:
+    repeating-linear-gradient(45deg, var(--accent-tint) 0 6px, transparent 6px 12px),
+    var(--bg);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+}
+
+.qr-caption {
+  font-size: clamp(0.5rem, 0.4rem + 0.4vw, 0.62rem);
+  color: var(--muted);
+  text-align: center;
+}
+
+.preview-note {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* --------------------------- 9. Responsive ------------------------------- */
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-panel {
+    position: static;
+    order: -1; /* show the card above the form on narrow screens */
+  }
 }

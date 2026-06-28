@@ -8,13 +8,140 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app">
-    <h1>Contact Card Builder</h1>
-    <p class="tagline">Make a print-ready business card, QR code, and contact file — all in your browser.</p>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <h1 class="app-title">Contact Card Builder</h1>
+      <p class="tagline">Make a print-ready business card, QR code, and contact file — all in your browser.</p>
+    </div>
+  </header>
 
-    <!-- TODO (step 2): build the form here (name, title, phones, email, links,
-         "PDF only / all files" toggle, card-size dropdown). -->
-    <p id="scaffold-status">Scaffold loaded. Features coming soon.</p>
+  <main class="layout">
+    <!-- ============================== FORM ============================== -->
+    <section class="panel form-panel" aria-labelledby="form-heading">
+      <h2 id="form-heading" class="panel__heading">Your details</h2>
+
+      <form id="card-form" autocomplete="on" novalidate>
+        <fieldset class="field-group">
+          <legend>Identity</legend>
+
+          <label class="field">
+            <span class="field__label">Full name</span>
+            <input type="text" id="name" name="name" placeholder="Haytham M. R. Khalil" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Title / role</span>
+            <input type="text" id="title" name="title" placeholder="IT Support &amp; Infrastructure" />
+          </label>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Phone numbers</legend>
+
+          <div id="phone-list" class="repeat-list">
+            <div class="repeat-row">
+              <input type="text" class="phone-label" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
+              <input type="tel" class="phone-number" placeholder="+972 59 340 5069" aria-label="Phone number" />
+              <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
+            </div>
+            <div class="repeat-row">
+              <input type="text" class="phone-label" placeholder="Label (e.g. Mobile)" aria-label="Phone label" />
+              <input type="tel" class="phone-number" placeholder="+972 56 716 5712" aria-label="Phone number" />
+              <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
+            </div>
+          </div>
+          <button type="button" class="row-add" id="add-phone">+ Add phone</button>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Contact</legend>
+
+          <label class="field">
+            <span class="field__label">Email</span>
+            <input type="email" id="email" name="email" placeholder="haytham.khalil.eng@gmail.com" />
+          </label>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Links</legend>
+
+          <div id="link-list" class="repeat-list">
+            <div class="repeat-row">
+              <input type="text" class="link-url" placeholder="linkedin.com/in/haytham-m-khalil" aria-label="Link" />
+              <button type="button" class="row-remove" aria-label="Remove this link">&times;</button>
+            </div>
+            <div class="repeat-row">
+              <input type="text" class="link-url" placeholder="github.com/Haytham-M-Khalil" aria-label="Link" />
+              <button type="button" class="row-remove" aria-label="Remove this link">&times;</button>
+            </div>
+          </div>
+          <button type="button" class="row-add" id="add-link">+ Add link</button>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Appearance</legend>
+
+          <label class="field field--inline">
+            <span class="field__label">Accent color</span>
+            <input type="color" id="accent" name="accent" value="#732da0" />
+          </label>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Output</legend>
+
+          <div class="segmented" role="radiogroup" aria-label="Which files to generate">
+            <label class="segmented__option">
+              <input type="radio" name="output" value="pdf" />
+              <span>PDF only</span>
+            </label>
+            <label class="segmented__option">
+              <input type="radio" name="output" value="all" checked />
+              <span>All files (PDF + QR + vCard)</span>
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Card size</span>
+            <select id="card-size" name="card-size">
+              <option value="us">US business card — 3.5 × 2 in</option>
+              <option value="eu">EU / ISO — 85 × 55 mm</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <button type="submit" class="btn-primary">Generate card</button>
+      </form>
+    </section>
+
+    <!-- ============================ PREVIEW ============================= -->
+    <aside class="panel preview-panel" aria-labelledby="preview-heading">
+      <h2 id="preview-heading" class="panel__heading">Preview</h2>
+
+      <div class="card" id="card-preview">
+        <div class="card__accent"></div>
+        <div class="card__body">
+          <div class="card__info">
+            <p class="card__name">Haytham M. R. Khalil</p>
+            <p class="card__role">IT Support &amp; Infrastructure</p>
+            <hr class="card__divider" />
+            <ul class="card__lines">
+              <li><span class="card__label">WhatsApp</span> +972 59 340 5069</li>
+              <li><span class="card__label">Mobile</span> +972 56 716 5712</li>
+              <li>haytham.khalil.eng@gmail.com</li>
+              <li>linkedin.com/in/haytham-m-khalil</li>
+              <li>github.com/Haytham-M-Khalil</li>
+            </ul>
+          </div>
+          <div class="card__qr">
+            <div class="qr-placeholder" aria-hidden="true">QR</div>
+            <p class="qr-caption">Scan to save my contact</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="preview-note">This is a sample. Live preview that updates as you type comes in a later step.</p>
+    </aside>
   </main>
 
   <!-- Vendored libraries load before app.js.
