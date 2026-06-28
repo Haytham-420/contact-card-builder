@@ -326,9 +326,9 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 6. Wire up the form. "Generate card" produces the PDF card, the QR .png,
-  //    and the .vcf, and updates the preview. (The PDF-only/all-files toggle is
-  //    wired next; for now all three files are produced.)
+  // 6. Wire up the form. "Generate card" always produces the PDF and refreshes
+  //    the preview; the PDF-only/all-files toggle decides whether the QR .png
+  //    and .vcf are downloaded too.
   // ---------------------------------------------------------------------------
   function handleSubmit(event) {
     event.preventDefault();
@@ -343,18 +343,20 @@
     var base = safeBaseName(data.displayName);
     var qr = buildQrModel(vcard);
 
-    // PDF business card (QR drawn as vector squares).
-    buildPdf(data, qr).save(base + "_card.pdf");
-
-    // QR .png + live preview update.
+    // Always refresh the preview with the real QR.
     var canvas = drawQrToCanvas(qr);
     renderPreviewQr(canvas);
-    canvas.toBlob(function (blob) {
-      downloadBlob(base + "_QR.png", blob);
-    }, "image/png");
 
-    // vCard contact file.
-    downloadText(base + ".vcf", vcard, "text/vcard;charset=utf-8");
+    // The PDF business card is always produced (QR drawn as vector squares).
+    buildPdf(data, qr).save(base + "_card.pdf");
+
+    // "All files" additionally downloads the QR .png and the .vcf.
+    if (data.output === "all") {
+      canvas.toBlob(function (blob) {
+        downloadBlob(base + "_QR.png", blob);
+      }, "image/png");
+      downloadText(base + ".vcf", vcard, "text/vcard;charset=utf-8");
+    }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
