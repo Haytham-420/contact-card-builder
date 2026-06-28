@@ -190,6 +190,24 @@ select {
   padding-right: 2rem;
 }
 
+input.is-invalid,
+select.is-invalid {
+  border-color: #f0a39c;
+}
+
+input.is-invalid:focus,
+select.is-invalid:focus {
+  border-color: #d92d20;
+  box-shadow: 0 0 0 3px #fef3f2;
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: #b42318;
+}
+
 input[type="color"] {
   width: 44px;
   height: 32px;

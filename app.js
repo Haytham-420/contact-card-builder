@@ -407,7 +407,53 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 8. Wire up the form. "Generate card" always produces the PDF and refreshes
+  // 8. Validation. Show a friendly inline message under a field instead of a
+  //    blunt alert: a name is required, and the email (if given) must look valid.
+  // ---------------------------------------------------------------------------
+  function setFieldError(inputId, message) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    var field = input.closest(".field") || input.parentNode;
+    var err = field.querySelector(".field-error");
+    if (message) {
+      if (!err) {
+        err = document.createElement("span");
+        err.className = "field-error";
+        field.appendChild(err);
+      }
+      err.textContent = message;
+      input.setAttribute("aria-invalid", "true");
+      input.classList.add("is-invalid");
+    } else if (err) {
+      err.remove();
+      input.removeAttribute("aria-invalid");
+      input.classList.remove("is-invalid");
+    }
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Returns the id of the first invalid field, or null if everything is valid.
+  function firstInvalidField(data) {
+    if (!data.displayName) {
+      setFieldError("name", "Please enter a name.");
+      return "name";
+    }
+    setFieldError("name", "");
+
+    if (data.email && !isValidEmail(data.email)) {
+      setFieldError("email", "That email doesn't look right.");
+      return "email";
+    }
+    setFieldError("email", "");
+
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9. Wire up the form. "Generate card" always produces the PDF and refreshes
   //    the preview; the PDF-only/all-files toggle decides whether the QR .png
   //    and .vcf are downloaded too.
   // ---------------------------------------------------------------------------
@@ -415,8 +461,10 @@
     event.preventDefault();
 
     var data = readForm();
-    if (!data.displayName) {
-      window.alert("Please enter a name before generating the card.");
+    var invalid = firstInvalidField(data);
+    if (invalid) {
+      var el = document.getElementById(invalid);
+      if (el) el.focus();
       return;
     }
 
@@ -446,6 +494,12 @@
       form.addEventListener("submit", handleSubmit);
       form.addEventListener("input", syncPreview);
       form.addEventListener("change", syncPreview);
+      // Clear a field's error as soon as the user edits it.
+      form.addEventListener("input", function (event) {
+        if (event.target.id === "name" || event.target.id === "email") {
+          setFieldError(event.target.id, "");
+        }
+      });
     }
     wireRepeatList("phone-list", "add-phone");
     wireRepeatList("link-list", "add-link");
