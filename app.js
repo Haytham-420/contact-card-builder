@@ -285,11 +285,34 @@
     var grey = hexToRgb("#73787f");
     var acc = hexToRgb(data.accent);
 
-    var M = 14, leftX = 18;
+    // In Arabic the whole card is mirrored: accent bar on the right, QR on the
+    // left, text right-aligned. Arabic strings are shaped + reordered for RTL.
+    var rtl = currentLang === "ar";
+    var M = 14, edge = 18;
+    var anchorX = rtl ? W - edge : edge;   // where text starts (the "start" side)
+    var align = rtl ? "right" : "left";
 
-    // --- QR: vector squares, right side, vertically centered ---
+    // Set the right font for a piece of text and shape it if it's Arabic.
+    // Returns the (possibly reshaped) string actually drawn.
+    function pieceFont(text, bold) {
+      if (rtl && window.ArabicShaper && ArabicShaper.hasArabic(text)) {
+        doc.setFont("Amiri", "normal");
+        return ArabicShaper.toVisual(text);
+      }
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      return text;
+    }
+    function draw(text, x, y, sizePt, bold, color) {
+      var str = pieceFont(text, bold);
+      doc.setFontSize(sizePt);
+      doc.setTextColor(color.r, color.g, color.b);
+      doc.text(str, x, y, { align: align });
+      return str;
+    }
+
+    // --- QR: vector squares, vertically centered, on the far side ---
     var qrSize = H * 0.62;
-    var qx = W - M - qrSize;
+    var qx = rtl ? M : W - M - qrSize;
     var qy = (H - qrSize) / 2 - 4;
     var count = qr.getModuleCount();
     var quiet = 2; // white quiet-zone modules inside the QR box, for scannability
@@ -303,70 +326,64 @@
       }
     }
     doc.setTextColor(grey.r, grey.g, grey.b);
-    doc.setFont("helvetica", "normal");
+    var cap = pieceFont(t("scanCaption"), false);
     doc.setFontSize(5.4);
-    doc.text("Scan to save my contact", qx + qrSize / 2, qy + qrSize + 9, { align: "center" });
+    doc.text(cap, qx + qrSize / 2, qy + qrSize + 9, { align: "center" });
 
-    // --- Left accent bar ---
+    // --- Accent bar (right under RTL, left otherwise) ---
     doc.setFillColor(acc.r, acc.g, acc.b);
-    doc.rect(0, 0, 4, H, "F");
+    doc.rect(rtl ? W - 4 : 0, 0, 4, H, "F");
+
+    // Width available to the text column (between the start edge and the QR).
+    var textWidth = rtl
+      ? anchorX - (qx + qrSize + 10)
+      : (qx - 10) - edge;
 
     // --- Name (auto-shrink to fit the text column) ---
-    var textMaxX = qx - 10;
-    var nameSize = 13;
-    doc.setFont("helvetica", "bold");
-    while (nameSize > 9 &&
-           doc.getStringUnitWidth(data.displayName) * nameSize > (textMaxX - leftX)) {
-      nameSize -= 0.5;
-    }
-    doc.setFontSize(nameSize);
     doc.setTextColor(ink.r, ink.g, ink.b);
+    var nameStr = pieceFont(data.displayName, true);
+    var nameSize = 13;
+    doc.setFontSize(nameSize);
+    while (nameSize > 9 &&
+           doc.getStringUnitWidth(nameStr) * nameSize > textWidth) {
+      nameSize -= 0.5;
+      doc.setFontSize(nameSize);
+    }
     var y = M + nameSize;
-    doc.text(data.displayName, leftX, y);
+    doc.text(nameStr, anchorX, y, { align: align });
 
     // --- Title ---
     if (data.title) {
       y += 13;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.6);
-      doc.setTextColor(acc.r, acc.g, acc.b);
-      doc.text(data.title, leftX, y);
+      draw(data.title, anchorX, y, 7.6, false, acc);
     }
 
     // --- Divider ---
     y += 7;
     doc.setDrawColor(acc.r, acc.g, acc.b);
     doc.setLineWidth(0.8);
-    doc.line(leftX, y, leftX + Math.min(96, textMaxX - leftX), y);
+    var dividerLen = Math.min(96, textWidth);
+    doc.line(anchorX, y, rtl ? anchorX - dividerLen : anchorX + dividerLen, y);
 
     // --- Contact lines: phones (label + number), email, links ---
     y += 13;
     var step = 11.5;
     data.phones.forEach(function (phone) {
       if (phone.label) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(6.6);
-        doc.setTextColor(acc.r, acc.g, acc.b);
-        doc.text(phone.label, leftX, y);
-        var lw = doc.getStringUnitWidth(phone.label + "  ") * 6.6;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.0);
-        doc.setTextColor(ink.r, ink.g, ink.b);
-        doc.text(phone.number, leftX + lw, y);
+        var labelStr = draw(phone.label, anchorX, y, 6.6, true, acc);
+        var offset = (doc.getStringUnitWidth(labelStr) + doc.getStringUnitWidth("  ")) * 6.6;
+        draw(phone.number, rtl ? anchorX - offset : anchorX + offset, y, 7.0, false, ink);
       } else {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.0);
-        doc.setTextColor(ink.r, ink.g, ink.b);
-        doc.text(phone.number, leftX, y);
+        draw(phone.number, anchorX, y, 7.0, false, ink);
       }
       y += step;
     });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.0);
-    doc.setTextColor(ink.r, ink.g, ink.b);
-    if (data.email) { doc.text(data.email, leftX, y); y += step; }
-    data.links.forEach(function (link) { doc.text(link, leftX, y); y += step; });
+    if (data.email) { draw(data.email, anchorX, y, 7.0, false, ink); y += step; }
+    data.links.forEach(function (link) {
+      draw(link, anchorX, y, 7.0, false, ink);
+      y += step;
+    });
 
     return doc;
   }
