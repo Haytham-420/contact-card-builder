@@ -40,12 +40,12 @@
 
           <div id="phone-list" class="repeat-list">
             <div class="repeat-row">
-              <input type="text" class="phone-label" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
+              <input type="text" class="phone-label" list="phone-labels" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
               <input type="tel" class="phone-number" placeholder="+1 555 0188" aria-label="Phone number" />
               <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
             </div>
             <div class="repeat-row">
-              <input type="text" class="phone-label" placeholder="Label (e.g. Mobile)" aria-label="Phone label" />
+              <input type="text" class="phone-label" list="phone-labels" placeholder="Label (e.g. Mobile)" aria-label="Phone label" />
               <input type="tel" class="phone-number" placeholder="+1 555 0123" aria-label="Phone number" />
               <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
             </div>
@@ -67,11 +67,11 @@
 
           <div id="link-list" class="repeat-list">
             <div class="repeat-row">
-              <input type="text" class="link-url" placeholder="linkedin.com/in/your-profile" aria-label="Link" />
+              <input type="text" class="link-url" list="link-presets" placeholder="linkedin.com/in/your-profile" aria-label="Link" />
               <button type="button" class="row-remove" aria-label="Remove this link">&times;</button>
             </div>
             <div class="repeat-row">
-              <input type="text" class="link-url" placeholder="github.com/your-username" aria-label="Link" />
+              <input type="text" class="link-url" list="link-presets" placeholder="github.com/your-username" aria-label="Link" />
               <button type="button" class="row-remove" aria-label="Remove this link">&times;</button>
             </div>
           </div>
@@ -111,6 +111,22 @@
         </fieldset>
 
         <button type="submit" class="btn-primary">Generate card</button>
+
+        <!-- Preset suggestions (free text still allowed). Shared by every cloned row. -->
+        <datalist id="phone-labels">
+          <option value="WhatsApp"></option>
+          <option value="Mobile"></option>
+          <option value="Work"></option>
+          <option value="Home"></option>
+          <option value="Telegram"></option>
+          <option value="Signal"></option>
+        </datalist>
+        <datalist id="link-presets">
+          <option value="linkedin.com/in/"></option>
+          <option value="github.com/"></option>
+          <option value="x.com/"></option>
+          <option value="instagram.com/"></option>
+        </datalist>
       </form>
     </section>
 
