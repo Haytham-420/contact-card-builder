@@ -10,60 +10,61 @@
 <body>
   <header class="app-header">
     <div class="app-header__inner">
-      <h1 class="app-title">Contact Card Builder</h1>
-      <p class="tagline">Make a print-ready business card, QR code, and contact file — all in your browser.</p>
+      <button type="button" id="lang-toggle" class="lang-toggle">العربية</button>
+      <h1 class="app-title" data-i18n="appTitle">Contact Card Builder</h1>
+      <p class="tagline" data-i18n="tagline">Make a print-ready business card, QR code, and contact file — all in your browser.</p>
     </div>
   </header>
 
   <main class="layout">
     <!-- ============================== FORM ============================== -->
     <section class="panel form-panel" aria-labelledby="form-heading">
-      <h2 id="form-heading" class="panel__heading">Your details</h2>
+      <h2 id="form-heading" class="panel__heading" data-i18n="formHeading">Your details</h2>
 
       <form id="card-form" autocomplete="on" novalidate>
         <fieldset class="field-group">
-          <legend>Identity</legend>
+          <legend data-i18n="legendIdentity">Identity</legend>
 
           <label class="field">
-            <span class="field__label">Full name</span>
+            <span class="field__label" data-i18n="labelName">Full name</span>
             <input type="text" id="name" name="name" placeholder="Robin Doe" />
           </label>
 
           <label class="field">
-            <span class="field__label">Title / role</span>
+            <span class="field__label" data-i18n="labelTitle">Title / role</span>
             <input type="text" id="title" name="title" placeholder="Product Designer" />
           </label>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Phone numbers</legend>
+          <legend data-i18n="legendPhones">Phone numbers</legend>
 
           <div id="phone-list" class="repeat-list">
             <div class="repeat-row">
-              <input type="text" class="phone-label" list="phone-labels" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
+              <input type="text" class="phone-label" list="phone-labels" data-i18n-ph="phPhoneLabel" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
               <input type="tel" class="phone-number" placeholder="+1 555 0188" aria-label="Phone number" />
               <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
             </div>
             <div class="repeat-row">
-              <input type="text" class="phone-label" list="phone-labels" placeholder="Label (e.g. Mobile)" aria-label="Phone label" />
+              <input type="text" class="phone-label" list="phone-labels" data-i18n-ph="phPhoneLabel" placeholder="Label (e.g. WhatsApp)" aria-label="Phone label" />
               <input type="tel" class="phone-number" placeholder="+1 555 0123" aria-label="Phone number" />
               <button type="button" class="row-remove" aria-label="Remove this phone">&times;</button>
             </div>
           </div>
-          <button type="button" class="row-add" id="add-phone">+ Add phone</button>
+          <button type="button" class="row-add" id="add-phone" data-i18n="addPhone">+ Add phone</button>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Contact</legend>
+          <legend data-i18n="legendContact">Contact</legend>
 
           <label class="field">
-            <span class="field__label">Email</span>
+            <span class="field__label" data-i18n="labelEmail">Email</span>
             <input type="email" id="email" name="email" placeholder="robin.doe@example.com" />
           </label>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Links</legend>
+          <legend data-i18n="legendLinks">Links</legend>
 
           <div id="link-list" class="repeat-list">
             <div class="repeat-row">
@@ -75,42 +76,42 @@
               <button type="button" class="row-remove" aria-label="Remove this link">&times;</button>
             </div>
           </div>
-          <button type="button" class="row-add" id="add-link">+ Add link</button>
+          <button type="button" class="row-add" id="add-link" data-i18n="addLink">+ Add link</button>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Appearance</legend>
+          <legend data-i18n="legendAppearance">Appearance</legend>
 
           <label class="field field--inline">
-            <span class="field__label">Accent color</span>
+            <span class="field__label" data-i18n="labelAccent">Accent color</span>
             <input type="color" id="accent" name="accent" value="#732da0" />
           </label>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Output</legend>
+          <legend data-i18n="legendOutput">Output</legend>
 
           <div class="segmented" role="radiogroup" aria-label="Which files to generate">
             <label class="segmented__option">
               <input type="radio" name="output" value="pdf" />
-              <span>PDF only</span>
+              <span data-i18n="optPdfOnly">PDF only</span>
             </label>
             <label class="segmented__option">
               <input type="radio" name="output" value="all" checked />
-              <span>All files (PDF + QR + vCard)</span>
+              <span data-i18n="optAllFiles">All files (PDF + QR + vCard)</span>
             </label>
           </div>
 
           <label class="field">
-            <span class="field__label">Card size</span>
+            <span class="field__label" data-i18n="labelCardSize">Card size</span>
             <select id="card-size" name="card-size">
-              <option value="us">US business card — 3.5 × 2 in</option>
-              <option value="eu">EU / ISO — 85 × 55 mm</option>
+              <option value="us" data-i18n="sizeUs">US business card — 3.5 × 2 in</option>
+              <option value="eu" data-i18n="sizeEu">EU / ISO — 85 × 55 mm</option>
             </select>
           </label>
         </fieldset>
 
-        <button type="submit" class="btn-primary">Generate card</button>
+        <button type="submit" class="btn-primary" data-i18n="btnGenerate">Generate card</button>
 
         <!-- Preset suggestions (free text still allowed). Shared by every cloned row. -->
         <datalist id="phone-labels">
@@ -132,7 +133,7 @@
 
     <!-- ============================ PREVIEW ============================= -->
     <aside class="panel preview-panel" aria-labelledby="preview-heading">
-      <h2 id="preview-heading" class="panel__heading">Preview</h2>
+      <h2 id="preview-heading" class="panel__heading" data-i18n="previewHeading">Preview</h2>
 
       <div class="card" id="card-preview">
         <div class="card__accent"></div>
@@ -151,12 +152,12 @@
           </div>
           <div class="card__qr">
             <div class="qr-placeholder" aria-hidden="true">QR</div>
-            <p class="qr-caption">Scan to save my contact</p>
+            <p class="qr-caption" data-i18n="scanCaption">Scan to save my contact</p>
           </div>
         </div>
       </div>
 
-      <p class="preview-note">Live preview — updates as you fill in the form. Click “Generate card” for the print-ready PDF and the real QR.</p>
+      <p class="preview-note" data-i18n="previewNote">Live preview — updates as you fill in the form. Click “Generate card” for the print-ready PDF and the real QR.</p>
     </aside>
   </main>
 

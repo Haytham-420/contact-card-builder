@@ -14,6 +14,80 @@
   "use strict";
 
   // ---------------------------------------------------------------------------
+  // 0. Internationalization (English + Arabic). UI strings keyed by data-i18n
+  //    attributes in the markup; `t()` reads the current language for strings
+  //    built in JS (validation, preview fallback).
+  // ---------------------------------------------------------------------------
+  var I18N = {
+    en: {
+      appTitle: "Contact Card Builder",
+      tagline: "Make a print-ready business card, QR code, and contact file — all in your browser.",
+      formHeading: "Your details",
+      legendIdentity: "Identity",
+      labelName: "Full name",
+      labelTitle: "Title / role",
+      legendPhones: "Phone numbers",
+      phPhoneLabel: "Label (e.g. WhatsApp)",
+      addPhone: "+ Add phone",
+      legendContact: "Contact",
+      labelEmail: "Email",
+      legendLinks: "Links",
+      addLink: "+ Add link",
+      legendAppearance: "Appearance",
+      labelAccent: "Accent color",
+      legendOutput: "Output",
+      optPdfOnly: "PDF only",
+      optAllFiles: "All files (PDF + QR + vCard)",
+      labelCardSize: "Card size",
+      sizeUs: "US business card — 3.5 × 2 in",
+      sizeEu: "EU / ISO — 85 × 55 mm",
+      btnGenerate: "Generate card",
+      previewHeading: "Preview",
+      scanCaption: "Scan to save my contact",
+      previewNote: "Live preview — updates as you fill in the form. Click “Generate card” for the print-ready PDF and the real QR.",
+      previewName: "Your Name",
+      errName: "Please enter a name.",
+      errEmail: "That email doesn't look right.",
+    },
+    ar: {
+      appTitle: "منشئ بطاقة التواصل",
+      tagline: "أنشئ بطاقة عمل جاهزة للطباعة ورمز QR وملف جهة اتصال — من متصفحك مباشرة.",
+      formHeading: "بياناتك",
+      legendIdentity: "الهوية",
+      labelName: "الاسم الكامل",
+      labelTitle: "المسمى الوظيفي",
+      legendPhones: "أرقام الهاتف",
+      phPhoneLabel: "التسمية (مثل واتساب)",
+      addPhone: "+ إضافة هاتف",
+      legendContact: "وسائل التواصل",
+      labelEmail: "البريد الإلكتروني",
+      legendLinks: "الروابط",
+      addLink: "+ إضافة رابط",
+      legendAppearance: "المظهر",
+      labelAccent: "اللون المميز",
+      legendOutput: "المخرجات",
+      optPdfOnly: "ملف PDF فقط",
+      optAllFiles: "كل الملفات (PDF + QR + vCard)",
+      labelCardSize: "حجم البطاقة",
+      sizeUs: "بطاقة أمريكية — 3.5 × 2 إنش",
+      sizeEu: "أوروبية / ISO — 85 × 55 مم",
+      btnGenerate: "إنشاء البطاقة",
+      previewHeading: "معاينة",
+      scanCaption: "امسح لحفظ جهة الاتصال",
+      previewNote: "معاينة حية — تتحدث أثناء تعبئة النموذج. اضغط «إنشاء البطاقة» للحصول على ملف PDF الجاهز للطباعة ورمز QR الحقيقي.",
+      previewName: "اسمك",
+      errName: "يرجى إدخال الاسم.",
+      errEmail: "يبدو أن البريد الإلكتروني غير صحيح.",
+    },
+  };
+
+  var currentLang = "en";
+
+  function t(key) {
+    return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+  }
+
+  // ---------------------------------------------------------------------------
   // 1. Read the form into a plain data object.
   //    This is the single source of truth the vCard / QR / PDF are built from.
   // ---------------------------------------------------------------------------
@@ -374,7 +448,7 @@
     var roleEl = card.querySelector(".card__role");
     var linesEl = card.querySelector(".card__lines");
 
-    if (nameEl) nameEl.textContent = data.displayName || "Your Name";
+    if (nameEl) nameEl.textContent = data.displayName || t("previewName");
     if (roleEl) {
       roleEl.textContent = data.title;
       roleEl.style.display = data.title ? "" : "none";
@@ -438,13 +512,13 @@
   // Returns the id of the first invalid field, or null if everything is valid.
   function firstInvalidField(data) {
     if (!data.displayName) {
-      setFieldError("name", "Please enter a name.");
+      setFieldError("name", t("errName"));
       return "name";
     }
     setFieldError("name", "");
 
     if (data.email && !isValidEmail(data.email)) {
-      setFieldError("email", "That email doesn't look right.");
+      setFieldError("email", t("errEmail"));
       return "email";
     }
     setFieldError("email", "");
@@ -488,6 +562,32 @@
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 10. Language: swap every UI string, flip the document direction, and
+  //     remember the choice. The card layout mirrors automatically under
+  //     dir="rtl" (flex + logical properties).
+  // ---------------------------------------------------------------------------
+  function applyLanguage(lang) {
+    currentLang = lang === "ar" ? "ar" : "en";
+    var dict = I18N[currentLang];
+    var html = document.documentElement;
+    html.lang = currentLang;
+    html.dir = currentLang === "ar" ? "rtl" : "ltr";
+    try { localStorage.setItem("ccb-lang", currentLang); } catch (e) {}
+
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n");
+      if (dict[key] != null) el.textContent = dict[key];
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n-ph");
+      if (dict[key] != null) el.setAttribute("placeholder", dict[key]);
+    });
+
+    var toggle = document.getElementById("lang-toggle");
+    if (toggle) toggle.textContent = currentLang === "en" ? "العربية" : "English";
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     var form = document.getElementById("card-form");
     if (form) {
@@ -503,6 +603,17 @@
     }
     wireRepeatList("phone-list", "add-phone");
     wireRepeatList("link-list", "add-link");
+
+    var saved = null;
+    try { saved = localStorage.getItem("ccb-lang"); } catch (e) {}
+    applyLanguage(saved || "en");
+    var toggle = document.getElementById("lang-toggle");
+    if (toggle) {
+      toggle.addEventListener("click", function () {
+        applyLanguage(currentLang === "en" ? "ar" : "en");
+      });
+    }
+
     console.log("Contact Card Builder: vCard + QR + PDF ready.");
   });
 
@@ -516,5 +627,6 @@
     safeBaseName: safeBaseName,
     downloadText: downloadText,
     downloadBlob: downloadBlob,
+    applyLanguage: applyLanguage,
   };
 })();

@@ -68,9 +68,30 @@ ul {
 }
 
 .app-header__inner {
+  position: relative;
   max-width: 1040px;
   margin: 0 auto;
   padding: 2.25rem 1.25rem 2.5rem;
+}
+
+.lang-toggle {
+  position: absolute;
+  top: 1.25rem;
+  inset-inline-end: 1.25rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .app-title {
@@ -395,6 +416,7 @@ input[type="color"] {
   border-top: max(1px, 0.55cqh) solid var(--accent);   /* 0.8 pt rule */
   width: 66.7cqh;           /* 96 pt */
   margin: 4.9cqh 0 9cqh;    /* 7 pt above, 13 pt below */
+  margin-inline-end: auto;  /* hug the inline-start edge (flips under RTL) */
 }
 
 .card__lines {
@@ -462,6 +484,21 @@ input[type="color"] {
   margin-top: 1rem;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+/* --------------------------- RTL adjustments ----------------------------- */
+/* Emails, phone numbers and links are always written left-to-right. */
+input[type="tel"],
+input[type="email"],
+.link-url {
+  direction: ltr;
+}
+
+/* Move the native select arrow to the start side under RTL. */
+[dir="rtl"] select {
+  background-position: left 0.75rem center;
+  padding-right: 0.7rem;
+  padding-left: 2rem;
 }
 
 /* --------------------------- 9. Responsive ------------------------------- */
